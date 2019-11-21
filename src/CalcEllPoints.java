@@ -1,23 +1,44 @@
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class CalcEllPoints
 {
     static ArrayList<Pair> points = new ArrayList<>();
+    static FileWriter wr;
 
-    public static void main(String[] args)
-    {
-        BigInteger A = BigInteger.valueOf(3);
-        BigInteger B = BigInteger.valueOf(8);
+    static {
+        try {
+            wr = new FileWriter("text.txt");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public CalcEllPoints() throws IOException {
+    }
+
+    public static void main(String[] args) throws IOException {
+        Scanner scan = new Scanner(System.in);
+        System.out.print("A: ");
+        BigInteger A = scan.nextBigInteger();
+        System.out.print("B: ");
+        BigInteger B = scan.nextBigInteger();
         BigInteger p = BigInteger.valueOf(11);
 
         pointsEllCurve(A, B);
 
         for (int i = 1; i < points.size(); i++)
         {
+            wr.write("************************ТОЧКА (" + points.get(i).x + ", " + points.get(i).y + ")****************\n");
             Pair kP = mult(points.get(i), BigInteger.valueOf(points.size()), A, p);
-            System.out.println(kP.x + " " + kP.y);
+            //System.out.println(kP.x + " " + kP.y);
         }
+
+        wr.close();
         /*Scanner scan = new Scanner(System.in);
 
         Pair P = new Pair();
@@ -30,8 +51,7 @@ public class CalcEllPoints
         System.out.println(kP.x + " " + kP.y);*/
     }
 
-    static void pointsEllCurve(BigInteger A, BigInteger B)
-    {
+    static void pointsEllCurve(BigInteger A, BigInteger B) throws IOException {
         int a = A.intValue(), b = B.intValue();
         points.add(new Pair());
 
@@ -44,10 +64,11 @@ public class CalcEllPoints
                     points.add(new Pair(BigInteger.valueOf(i), BigInteger.valueOf(j)));
         }
 
-        System.out.println(points.size());
-        for (int i = 0; i < points.size(); i++)
-            System.out.println(points.get(i).x + " " + points.get(i).y);
-        System.out.println("");
+        wr.write("Порядок N: " + points.size() + "\nТочки кривой: \nO\n");
+        for (int i = 1; i < points.size(); i++) {
+            wr.write("(" + points.get(i).x + ", " + points.get(i).y + ")\n");
+        }
+        //System.out.println("");
     }
 
     public static Pair sum(Pair x1y1, Pair x2y2, BigInteger p, BigInteger A) {
@@ -69,19 +90,25 @@ public class CalcEllPoints
             BigInteger x3 = (alph.multiply(alph).subtract(x1).subtract(x2)).mod(p),
                     y3 = ((x1.subtract(x3)).multiply(alph).subtract(y1)).mod(p);
 
+
+            wr.write("alph: " + alph + " x: " + x3 + " y: " + y3 + "\n");
             return new Pair(x3, y3);
         } catch (ArithmeticException e) {
+            return null;
+        } catch (IOException e) {
+            e.printStackTrace();
             return null;
         }
     }
 
-    public static Pair mult(Pair point, BigInteger n, BigInteger A, BigInteger p)
-    {
+    public static Pair mult(Pair point, BigInteger n, BigInteger A, BigInteger p) throws IOException {
         Pair res = point;
         for (int i = 2; i <= n.intValue(); i++) {
+            wr.write(i + "P:    ");
             res = sum(res, point, p, A);
             if (res == null)
             {
+                wr.write("O\n");
                 return new Pair(BigInteger.valueOf(-1), BigInteger.valueOf(i));
             }
         }
